@@ -4,6 +4,8 @@ import { getCurrentUser } from "./api/auth";
 import { Default } from "./components/Default";
 import { SignIn } from "./components/SignIn";
 import { SignUp } from "./components/SignUp";
+import { Home } from "./components/Home";
+import { Work } from "./components/Work";
 
 export const AuthContext = createContext();
 
@@ -59,11 +61,14 @@ function App() {
         <Routes>
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
-          <Route path="*" element={
+          <Route path="/" element={
             <Private>
               <Default/>
             </Private>
-          } />
+          } >
+            <Route path="" element={<Home />} />
+            <Route path="work" element={<Work />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthContext.Provider>

@@ -2,6 +2,8 @@ import client from "./client";
 import Cookies from "js-cookie";
 
 import { SignUpParams, SignInParams } from "../interfaces/index";
+import { url } from "inspector";
+import { AxiosResponse } from "axios";
 
 // サインアップ（新規アカウント作成）
 export const signUp = (params: SignUpParams) => {
@@ -29,18 +31,35 @@ export const signOut = () => {
   }
 };
 
+export const getWorks = () => {
+  return requestGet("/works", null)
+};
+
 // 認証済みのユーザーを取得
 export const getCurrentUser = () => {
-  const headerAccessToken = Cookies.get("_access_token");
-  const headerClient = Cookies.get("_client");
-  const headerUid = Cookies.get("_uid");
-  if (headerAccessToken && headerClient && headerUid) {
-    return client.get("/auth/sessions", {
-      headers: {
+  return requestGet("/auth/sessions", null)
+};
+
+const requestGet = (url: string, params: any | null): Promise<AxiosResponse<any, any>> => {
+  const headerAccessToken = Cookies.get("_access_token") || "null";
+  const headerClient = Cookies.get("_client") || "null";
+  const headerUid = Cookies.get("_uid") || "null";
+  if(params){
+    return client.get(url,{
+      headers:  {
+        "access-token": headerAccessToken,
+        client: headerClient,
+        uid: headerUid,
+      },
+      params
+    });
+  } else {
+    return client.get(url, {
+      headers:  {
         "access-token": headerAccessToken,
         client: headerClient,
         uid: headerUid,
       },
     });
   }
-};
+}
