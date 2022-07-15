@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../logo.svg";
 import "../App.css";
 import { Grid, ListItem } from "@mui/material";
@@ -8,6 +9,9 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 export const Home = () => {
   const [works, setWorks] = useState(Array<any>)
+
+  const navigate = useNavigate()
+
 
   useEffect(() => {
     getWorks()
@@ -26,7 +30,7 @@ export const Home = () => {
           <a>作成されたワークはありません</a> :
           <ul>
             {works.map((work) => {
-              return <li><a href="/work">{work.workName}</a></li>
+              return <li><a onClick={() => navigate("/work", { state: { id: work.id}})}>{work.workName}</a></li>
             })}
           </ul>
         }

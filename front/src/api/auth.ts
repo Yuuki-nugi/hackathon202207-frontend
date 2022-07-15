@@ -35,6 +35,14 @@ export const getWorks = () => {
   return requestGet("/works", null)
 };
 
+export const getWork = (id: number) => {
+  return requestGet(`/works/${id}`, null)
+}
+
+export const updateFeeling = (params: any) => {
+  return requestPatch("/feelings", params)
+};
+
 // 認証済みのユーザーを取得
 export const getCurrentUser = () => {
   return requestGet("/auth/sessions", null)
@@ -55,6 +63,30 @@ const requestGet = (url: string, params: any | null): Promise<AxiosResponse<any,
     });
   } else {
     return client.get(url, {
+      headers:  {
+        "access-token": headerAccessToken,
+        client: headerClient,
+        uid: headerUid,
+      },
+    });
+  }
+}
+
+const requestPatch = (url: string, params: any | null): Promise<AxiosResponse<any, any>> => {
+  const headerAccessToken = Cookies.get("_access_token") || "null";
+  const headerClient = Cookies.get("_client") || "null";
+  const headerUid = Cookies.get("_uid") || "null";
+  if(params){
+    return client.patch(url,{
+      headers:  {
+        "access-token": headerAccessToken,
+        client: headerClient,
+        uid: headerUid,
+      },
+      params
+    });
+  } else {
+    return client.patch(url, {
       headers:  {
         "access-token": headerAccessToken,
         client: headerClient,
