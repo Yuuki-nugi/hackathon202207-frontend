@@ -116,13 +116,12 @@ const requestPatch = (url: string, params: any | null): Promise<AxiosResponse<an
   const headerClient = Cookies.get("_client") || "null";
   const headerUid = Cookies.get("_uid") || "null";
   if(params){
-    return client.patch(url,{
+    return client.patch(url, params, {
       headers:  {
         "access-token": headerAccessToken,
         client: headerClient,
         uid: headerUid,
       },
-      params
     });
   } else {
     return client.patch(url, {

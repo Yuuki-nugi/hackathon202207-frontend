@@ -11,6 +11,7 @@ import Close from './close_FILL1_wght500_GRAD0_opsz48.png';
 import Play from './play_circle_FILL1_wght500_GRAD0_opsz48.png';
 import Pause from './pause_FILL1_wght500_GRAD0_opsz48.png';
 import Edit from './edit_FILL1_wght400_GRAD0_opsz48.png';
+import { ThemeEditableText } from "./ThemeEditableText";
 
 
 interface Props {
@@ -24,8 +25,8 @@ interface Props {
 }
 
 export const Theme = (props: Props) => {
-  const [progress, setProgress] = useState(props.progress)
-
+  const [title, setTitle] = useState(props.title)
+  const [result, setResult] = useState(props.result)
   const generateProgressParams = (workId: number, themeId: number | null) => {
     const params = {workId: workId, themeId: themeId}
     return params
@@ -34,8 +35,7 @@ export const Theme = (props: Props) => {
   const handleCreateProgress = () => {
     createProgress(generateProgressParams(props.workId, props.progress ? null : props.id))
       .then((res) => {
-        setProgress(res.data.isPlayOrPause)
-        props.changeNowThemeId(props.progress? null : props.id )
+        props.changeNowThemeId(res.data.progressingId)
       })
   }
 
@@ -49,15 +49,12 @@ export const Theme = (props: Props) => {
     <div style={{marginBottom: "8px"}}>
       <ThemeWrapper style={{width: width, fontSize: height}}>
         <img src={Close} onClick={() => props.deleteTheme(props.id)} height="16px" style={{ marginRight: "16px"}}/>
-        <a style={{verticalAlign: "middle"}}>{props.title}</a>
-        <img src={Edit} onClick={() =>
-          createProgress(generateProgressParams(props.workId, props.id)).then((res) => setProgress)
-          } height="12px" style={{marginLeft: "8px"}}/>
+        <ThemeEditableText id={props.id} text={title} type="title"/>
         <img src={playOrPause} onClick={() => handleCreateProgress()} height="24px" style={{marginLeft: "auto", marginRight: "8px"}}/>
       </ThemeWrapper>
       {props.result != null &&
         <ResultWrapper style={{width: resultWidth, fontSize: resultFont}}>
-            <a style={{verticalAlign: "middle"}}>{props.result}</a>
+            <ThemeEditableText id={props.id} text={result} type="result"/>
         </ResultWrapper>
       }
     </div>

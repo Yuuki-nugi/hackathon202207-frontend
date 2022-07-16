@@ -30,6 +30,7 @@ export const Work = () => {
           return value
         }
       })[0]
+      console.log("chamge")
       setNowTheme(nowTheme)
     }
   }
@@ -83,13 +84,22 @@ export const Work = () => {
       })
   }, [])
 
+  useEffect(() => {
+    console.log(nowTheme?.id)
+ })
+
   return (
     <Grid container bgcolor="#f2f2f2" minHeight="100vh">
       <Grid item xs={7}>
         <ThemeWrapper>
-          {nowTheme && 
-            <Theme workId={workId.id} id={nowTheme.id} title={nowTheme.title} result={nowTheme.result || ""} progress={true} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+          {nowTheme && themes &&
+            themes.map(value => {
+              if (value.id == nowTheme.id) {
+                return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={true} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+              }
+            })
           }
+          
           <ScrollableDiv>
             {themes &&
               themes.map(value => {
