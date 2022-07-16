@@ -23,6 +23,8 @@ export const Work = (callback: () => void) => {
   const [sumFeeling, setSumFeeling] = useState(0)
   const [putFeelingBt, setPutFeelingBt] = useState(false)
   const [holdFeeling, setHoldFeeling] = useState(0)
+  const [numberOfParticipants, setNumberOfParticipants] = useState(0)
+  const [backgroundColor, setBackgrountColor] = useState<string>()
   const callbackRef = useRef<() => void>(callback);
 
 
@@ -112,7 +114,7 @@ export const Work = (callback: () => void) => {
     if(holdFeeling == 1){
       setHoldFeeling(0)
     }else{
-      console.log(feeling)
+      console.log(sumFeeling)
       if(feeling == 0){
         return
       }else {
@@ -131,6 +133,21 @@ export const Work = (callback: () => void) => {
   })
 
   useEffect(() => {
+    console.log()
+    const max = [255, 255, 100]
+    const min = [150, 150, 150]
+    const color = (target: number) => {
+      return 255 - Math.round((255-target)/3/numberOfParticipants*Math.abs(sumFeeling))
+    }
+    console.log(color(244))
+    if(sumFeeling >= 0){
+      setBackgrountColor(`rgb(${color(max[0])}, ${color(max[1])}, ${color(max[2])})`)
+    }else{
+      setBackgrountColor(`rgb(${color(min[0])}, ${color(min[1])}, ${color(min[2])})`)
+    }
+  }, [sumFeeling, numberOfParticipants])
+
+  useEffect(() => {
     getWork(workId.id)
       .then((res) => {
         const work = res.data.work
@@ -138,10 +155,12 @@ export const Work = (callback: () => void) => {
         const sumFeeling = res.data.sumFeeling
         const feeling = res.data.feeling
         const lastThemeId = res.data.lastThemeId
+        const numberOfParticipants = res.data.numberOfParticipants
         setWork(work)
         setThemes(themes)
         setSumFeeling(sumFeeling)
         setFeeling(feeling)
+        setNumberOfParticipants(numberOfParticipants)
 
         const nowTheme = themes.filter( function( value: any ){
           if (value.id == lastThemeId) {
@@ -153,37 +172,38 @@ export const Work = (callback: () => void) => {
   }, [])
 
   return (
-    <Grid container bgcolor="rgb(242, 242, 242)" minHeight="100vh">
-      <Grid item xs={7}>
-        <ThemeWrapper>
-          {nowTheme && themes &&
-            themes.map(value => {
-              if (value.id == nowTheme.id) {
-                return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={true} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
-              }
-            })
-          }
-          
-          <ScrollableDiv>
-            {themes &&
+    <div style={{background: `linear-gradient(${backgroundColor}, rgb(255, 255, 255))`}}>
+      <Grid container minHeight="100vh">
+        <Grid item xs={7}>
+          <ThemeWrapper>
+            {nowTheme && themes &&
               themes.map(value => {
-                if (value.id != nowTheme?.id) {
-                  return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={false} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+                if (value.id == nowTheme.id) {
+                  return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={true} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
                 }
               })
             }
-            <img src={Plus} onClick={() => addTheme()} height="32px" style={{bottom: 10, position: "sticky", marginLeft: "auto", marginRight: "8px"}}/>
-          </ScrollableDiv>
-        </ThemeWrapper>
-        <ReactionWrapper>
-        <img src={Good} onClick={() => handleGood()} height="72px" />
-        <a>{sumFeeling}</a>
-        <img src={Bad} onClick={() => handleBad()} height="72px"/>
-        </ReactionWrapper>
+            
+            <ScrollableDiv>
+              {themes &&
+                themes.map(value => {
+                  if (value.id != nowTheme?.id) {
+                    return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={false} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+                  }
+                })
+              }
+              <img src={Plus} onClick={() => addTheme()} height="32px" style={{bottom: 10, position: "sticky", marginLeft: "auto", marginRight: "8px"}}/>
+            </ScrollableDiv>
+          </ThemeWrapper>
+          <ReactionWrapper>
+          <img src={Good} onClick={() => handleGood()} height="72px" />
+          <img src={Bad} onClick={() => handleBad()} height="72px"/>
+          </ReactionWrapper>
+        </Grid>
+        <Grid item xs={5}>
+        </Grid>
       </Grid>
-      <Grid item xs={5}>
-      </Grid>
-    </Grid>
+    </div>
   );
 }
 
