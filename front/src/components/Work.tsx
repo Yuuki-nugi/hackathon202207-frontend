@@ -4,7 +4,7 @@ import logo from "../logo.svg";
 import "../App.css";
 import { Grid, ListItem } from "@mui/material";
 import List from '@mui/material/List';
-import { getWork } from "../api/auth";
+import { getWork, createProgress, createTheme, deleteTheme } from "../api/auth";
 import InfiniteScroll from "react-infinite-scroll-component";
 import styled from "@emotion/styled";
 import { Theme } from "./Theme";
@@ -18,13 +18,50 @@ export const Work = () => {
   const [workId, setWorkId] = useState<{ id: number}>(location.state as { id: number })
   const [work, setWork] = useState()
   const [themes, setThemes] = useState<Array<{id: number, title: string, result: string | null, }>>()
+  const [nowThemeId, setNowThemeId] = useState()
   const [nowTheme, setNowTheme] = useState<{id: number, title: string, result: string | null, }>()
   const [degree, setDegree] = useState(0)
   const [subDegree, setSubDegree] = useState(0)
 
+  const changeNowTheme = (nowThemeId : number | null) => {
+    if(themes){
+      const nowTheme = themes.filter( function( value: any ){
+        if (value.id == nowThemeId) {
+          return value
+        }
+      })[0]
+      setNowTheme(nowTheme)
+    }
+  }
+
+  const addTheme = () => {
+    createTheme(workId.id).then((res) => {
+      const theme = res.data.theme
+      if(themes){
+        setThemes([...themes, theme])
+      }
+    })
+  }
+
+  const handleDeleteTheme = (id: number) => {
+    deleteTheme(id).then((res) => {
+      if(themes){
+        const new_themes: Array<{id: number, title: string, result: string | null, }> = themes.map((value) => {
+          if(value.id != id){
+            return value
+          }
+        }).filter((value): value is {id: number, title: string, result: string | null, } => value !== undefined)
+        if(new_themes){
+          setThemes(new_themes)
+        }
+      }
+    })
+  }
+
   setInterval(() => {
 
   }, 5000)
+
   useEffect(() => {
     getWork(workId.id)
       .then((res) => {
@@ -37,9 +74,12 @@ export const Work = () => {
         setSubDegree(sumDegree)
 
         const nowTheme = themes.filter( function( value: any ){
-          value.id == lastThemeId
+          if (value.id == lastThemeId) {
+            return value
+          }
         })[0]
         setNowTheme(nowTheme)
+
       })
   }, [])
 
@@ -48,15 +88,17 @@ export const Work = () => {
       <Grid item xs={7}>
         <ThemeWrapper>
           {nowTheme && 
-            <Theme id={nowTheme.id} title={nowTheme.title} result={nowTheme.result || ""} progress={true} />
+            <Theme workId={workId.id} id={nowTheme.id} title={nowTheme.title} result={nowTheme.result || ""} progress={true} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
           }
           <ScrollableDiv>
             {themes &&
-              themes.map(value => 
-                <Theme id={value.id} title={value.title} result={value.result || ""} progress={false} />
-              )
+              themes.map(value => {
+                if (value.id != nowTheme?.id) {
+                  return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={false} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+                }
+              })
             }
-            <img src={Plus} height="32px" style={{bottom: 10, position: "sticky", marginLeft: "auto", marginRight: "8px"}}/>
+            <img src={Plus} onClick={() => addTheme()} height="32px" style={{bottom: 10, position: "sticky", marginLeft: "auto", marginRight: "8px"}}/>
           </ScrollableDiv>
         </ThemeWrapper>
         <ReactionWrapper>

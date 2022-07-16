@@ -43,6 +43,22 @@ export const updateFeeling = (params: any) => {
   return requestPatch("/feelings", params)
 };
 
+export const createProgress = (params: any) => {
+  return requestPost("/progresses", params)
+};
+
+export const createTheme = (workId: number) => {
+  return requestPost('/themes', {workId: workId})
+};
+
+export const updateTheme = (id: number, params: any) => {
+  return requestPatch(`/themes/${id}`, params)
+};
+
+export const deleteTheme = (id: number) => {
+  return requestDelete(`/themes/${id}`, null)
+};
+
 // 認証済みのユーザーを取得
 export const getCurrentUser = () => {
   return requestGet("/auth/sessions", null)
@@ -72,6 +88,29 @@ const requestGet = (url: string, params: any | null): Promise<AxiosResponse<any,
   }
 }
 
+const requestPost = (url: string, params: any | null): Promise<AxiosResponse<any, any>> => {
+  const headerAccessToken = Cookies.get("_access_token") || "null";
+  const headerClient = Cookies.get("_client") || "null";
+  const headerUid = Cookies.get("_uid") || "null";
+  if(params){
+    return client.post(url, params, {
+      headers:  {
+        "access-token": headerAccessToken,
+        client: headerClient,
+        uid: headerUid,
+      },
+    });
+  } else {
+    return client.post(url, {
+      headers:  {
+        "access-token": headerAccessToken,
+        client: headerClient,
+        uid: headerUid,
+      },
+    });
+  }
+}
+
 const requestPatch = (url: string, params: any | null): Promise<AxiosResponse<any, any>> => {
   const headerAccessToken = Cookies.get("_access_token") || "null";
   const headerClient = Cookies.get("_client") || "null";
@@ -87,6 +126,30 @@ const requestPatch = (url: string, params: any | null): Promise<AxiosResponse<an
     });
   } else {
     return client.patch(url, {
+      headers:  {
+        "access-token": headerAccessToken,
+        client: headerClient,
+        uid: headerUid,
+      },
+    });
+  }
+}
+
+const requestDelete = (url: string, params: any | null): Promise<AxiosResponse<any, any>> => {
+  const headerAccessToken = Cookies.get("_access_token") || "null";
+  const headerClient = Cookies.get("_client") || "null";
+  const headerUid = Cookies.get("_uid") || "null";
+  if(params){
+    return client.delete(url,{
+      headers:  {
+        "access-token": headerAccessToken,
+        client: headerClient,
+        uid: headerUid,
+      },
+      params
+    });
+  } else {
+    return client.delete(url, {
       headers:  {
         "access-token": headerAccessToken,
         client: headerClient,
