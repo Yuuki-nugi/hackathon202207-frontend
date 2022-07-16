@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, VFC } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 import logo from "../logo.svg";
 import "../App.css";
 import { Grid, ListItem } from "@mui/material";
@@ -11,6 +11,7 @@ import { Theme } from "./Theme";
 import Plus from './add_circle_FILL1_wght400_GRAD0_opsz48.png';
 import Good from './good.png';
 import Bad from './bad.png';
+import { GroupAddText } from "./GroupAddText";
 
 export const Work = (callback: () => void) => {
   const location = useLocation()
@@ -114,7 +115,6 @@ export const Work = (callback: () => void) => {
     if(holdFeeling == 1){
       setHoldFeeling(0)
     }else{
-      console.log(sumFeeling)
       if(feeling == 0){
         return
       }else {
@@ -133,13 +133,11 @@ export const Work = (callback: () => void) => {
   })
 
   useEffect(() => {
-    console.log()
     const max = [255, 255, 100]
     const min = [150, 150, 150]
     const color = (target: number) => {
       return 255 - Math.round((255-target)/3/numberOfParticipants*Math.abs(sumFeeling))
     }
-    console.log(color(244))
     if(sumFeeling >= 0){
       setBackgrountColor(`rgb(${color(max[0])}, ${color(max[1])}, ${color(max[2])})`)
     }else{
@@ -172,9 +170,9 @@ export const Work = (callback: () => void) => {
   }, [])
 
   return (
-    <div style={{background: `linear-gradient(${backgroundColor}, rgb(255, 255, 255))`}}>
+    <div style={{background: `linear-gradient(${backgroundColor}, rgb(255, 255, 255))`, boxSizing: "border-box", height: "90%"}}>
       <Grid container minHeight="100vh">
-        <Grid item xs={7}>
+        <Grid item xs={6}>
           <ThemeWrapper>
             {nowTheme && themes &&
               themes.map(value => {
@@ -200,7 +198,10 @@ export const Work = (callback: () => void) => {
           <img src={Bad} onClick={() => handleBad()} height="72px"/>
           </ReactionWrapper>
         </Grid>
-        <Grid item xs={5}>
+        <Grid item xs={6}>
+            <GroupAddWrapper>
+              <GroupAddText id={workId.id} setParticipants={(number: number) => setNumberOfParticipants(number)}/>
+            </GroupAddWrapper>
         </Grid>
       </Grid>
     </div>
@@ -210,7 +211,7 @@ export const Work = (callback: () => void) => {
 const ThemeWrapper = styled.div`
   width: 80%;
   height: 70vh;
-  margin-top: 24px;
+  margin-top: 54px;
   margin-left: 24px;
   margin-bottom: 0;
   border-radius: 8px;
@@ -241,4 +242,10 @@ const ReactionWrapper = styled.div`
   width: 80%;
   display: flex;
   justify-content: space-around;
+`
+
+const GroupAddWrapper = styled.div`
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
 `

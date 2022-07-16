@@ -35,6 +35,18 @@ export const getWorks = () => {
   return requestGet("/works", null)
 };
 
+export const createWork = (params: any) => {
+  return requestPost("/works", params)
+}
+
+export const updateWork = (id: number, params: any) => {
+  return requestPatch(`/works/${id}`, params)
+}
+
+export const deleteWork = (id: number) => {
+  return requestDelete(`/works/${id}`, null)
+}
+
 export const getWork = (id: number) => {
   return requestGet(`/works/${id}`, null)
 }
@@ -58,6 +70,10 @@ export const updateTheme = (id: number, params: any) => {
 export const deleteTheme = (id: number) => {
   return requestDelete(`/themes/${id}`, null)
 };
+
+export const createParticipants = (params: any) => {
+  return requestPost("/participants", params)
+}
 
 // 認証済みのユーザーを取得
 export const getCurrentUser = () => {
