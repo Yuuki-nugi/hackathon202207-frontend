@@ -1,10 +1,10 @@
-import React, { useEffect, useState, VFC } from "react";
+import React, { useEffect, useRef, useState, VFC } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../logo.svg";
 import "../App.css";
 import { Grid, ListItem } from "@mui/material";
 import List from '@mui/material/List';
-import { getWork, createProgress, createTheme, deleteTheme } from "../api/auth";
+import { getWork, createProgress, createTheme, deleteTheme, updateFeeling } from "../api/auth";
 import InfiniteScroll from "react-infinite-scroll-component";
 import styled from "@emotion/styled";
 import { Theme } from "./Theme";
@@ -12,16 +12,20 @@ import Plus from './add_circle_FILL1_wght400_GRAD0_opsz48.png';
 import Good from './good.png';
 import Bad from './bad.png';
 
-export const Work = () => {
+export const Work = (callback: () => void) => {
   const location = useLocation()
-
   const [workId, setWorkId] = useState<{ id: number}>(location.state as { id: number })
   const [work, setWork] = useState()
   const [themes, setThemes] = useState<Array<{id: number, title: string, result: string | null, }>>()
   const [nowThemeId, setNowThemeId] = useState()
   const [nowTheme, setNowTheme] = useState<{id: number, title: string, result: string | null, }>()
-  const [degree, setDegree] = useState(0)
-  const [subDegree, setSubDegree] = useState(0)
+  const [feeling, setFeeling] = useState(0)
+  const [sumFeeling, setSumFeeling] = useState(0)
+  const [putFeelingBt, setPutFeelingBt] = useState(false)
+  const [holdFeeling, setHoldFeeling] = useState(0)
+  const callbackRef = useRef<() => void>(callback);
+
+
 
   const changeNowTheme = (nowThemeId : number | null) => {
     if(themes){
@@ -59,20 +63,85 @@ export const Work = () => {
     })
   }
 
-  setInterval(() => {
+  const handleGood = () => {
+    setHoldFeeling(1)
+    if(feeling < 3){
+      const params = {
+        workId: workId.id,
+        isPlus: true
+      }
+      updateFeeling(params).then((res) => {
+        setFeeling(res.data.feeling)
+        setSumFeeling(res.data.sumFeeling)
+      })
+    }
+  }
 
-  }, 5000)
+  const handleBad = () => {
+    setHoldFeeling(1)
+    if(feeling > -3){
+      const params = {
+        workId: workId.id,
+        isPlus: false
+      }
+      updateFeeling(params).then((res) => {
+        setFeeling(res.data.feeling)
+        setSumFeeling(res.data.sumFeeling)
+      })
+    }
+  }
+
+  const calmDown = (callback: () => void) => {
+    const callbackRef = useRef<() => void>(callback);
+    useEffect(() => {
+      callbackRef.current = callback; // 新しいcallbackをrefに格納！
+    }, [callback]);
+    
+    useEffect(() => {
+      const tick = () => { 
+        callbackRef.current()
+      } 
+      const id = setInterval(tick, 2000);
+      return () => {
+        clearInterval(id);
+      };
+    }, []);
+  };
+
+  calmDown(() => {
+    if(holdFeeling == 1){
+      setHoldFeeling(0)
+    }else{
+      console.log(feeling)
+      if(feeling == 0){
+        return
+      }else {
+        setFeeling(0)
+        const params = {
+          workId: workId.id,
+          isPlus: feeling > 0 ? false : true
+        }
+        updateFeeling(params).then((res) => {
+          setFeeling(res.data.feeling)
+          setSumFeeling(res.data.sumFeeling)
+        })
+
+      }
+    }
+  })
 
   useEffect(() => {
     getWork(workId.id)
       .then((res) => {
         const work = res.data.work
         const themes = res.data.themes
-        const sumDegree = res.data.sumDegree
+        const sumFeeling = res.data.sumFeeling
+        const feeling = res.data.feeling
         const lastThemeId = res.data.lastThemeId
         setWork(work)
         setThemes(themes)
-        setSubDegree(sumDegree)
+        setSumFeeling(sumFeeling)
+        setFeeling(feeling)
 
         const nowTheme = themes.filter( function( value: any ){
           if (value.id == lastThemeId) {
@@ -80,16 +149,11 @@ export const Work = () => {
           }
         })[0]
         setNowTheme(nowTheme)
-
       })
   }, [])
 
-  useEffect(() => {
-    console.log(nowTheme?.id)
- })
-
   return (
-    <Grid container bgcolor="#f2f2f2" minHeight="100vh">
+    <Grid container bgcolor="rgb(242, 242, 242)" minHeight="100vh">
       <Grid item xs={7}>
         <ThemeWrapper>
           {nowTheme && themes &&
@@ -112,8 +176,9 @@ export const Work = () => {
           </ScrollableDiv>
         </ThemeWrapper>
         <ReactionWrapper>
-        <img src={Good} height="72px" />
-        <img src={Bad} height="72px"/>
+        <img src={Good} onClick={() => handleGood()} height="72px" />
+        <a>{sumFeeling}</a>
+        <img src={Bad} onClick={() => handleBad()} height="72px"/>
         </ReactionWrapper>
       </Grid>
       <Grid item xs={5}>
