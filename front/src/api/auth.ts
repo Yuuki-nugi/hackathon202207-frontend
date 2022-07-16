@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import { SignUpParams, SignInParams } from "../interfaces/index";
 import { url } from "inspector";
 import { AxiosResponse } from "axios";
+import { AnyAaaaRecord } from "dns";
 
 // サインアップ（新規アカウント作成）
 export const signUp = (params: SignUpParams) => {
@@ -74,6 +75,15 @@ export const deleteTheme = (id: number) => {
 export const createParticipants = (params: any) => {
   return requestPost("/participants", params)
 }
+
+export const getComments = (params: any) => {
+  return requestGet("/comments", params)
+}
+
+export const createComment = (params: any) => {
+  return requestPost('/comments', params)
+};
+
 
 // 認証済みのユーザーを取得
 export const getCurrentUser = () => {

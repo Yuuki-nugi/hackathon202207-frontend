@@ -66,7 +66,7 @@ const ThemeWrapper = styled.div`
   align-items: center;
   padding: 4px;
   border-radius: 0 9999px 9999px 0;
-  background-color: skyblue;
+  background-color: #87ceeb;
 `
 
 const ResultWrapper = styled.div`

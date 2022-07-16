@@ -4,7 +4,7 @@ import logo from "../logo.svg";
 import "../App.css";
 import { Grid, ListItem } from "@mui/material";
 import List from '@mui/material/List';
-import { getWork, createProgress, createTheme, deleteTheme, updateFeeling } from "../api/auth";
+import { getWork, createProgress, createTheme, deleteTheme, updateFeeling, getComments, createComment } from "../api/auth";
 import InfiniteScroll from "react-infinite-scroll-component";
 import styled from "@emotion/styled";
 import { Theme } from "./Theme";
@@ -26,6 +26,9 @@ export const Work = (callback: () => void) => {
   const [holdFeeling, setHoldFeeling] = useState(0)
   const [numberOfParticipants, setNumberOfParticipants] = useState(0)
   const [backgroundColor, setBackgrountColor] = useState<string>()
+  const [comments, setComments] = useState<Array<any>>([<a>コメントはありません</a>])
+  const [hasMoreScroll, setHasMoreScroll] = useState(true)
+  const [inputComment, setInputComment] = useState("")
   const callbackRef = useRef<() => void>(callback);
 
 
@@ -132,6 +135,43 @@ export const Work = (callback: () => void) => {
     }
   })
 
+  const handleCommentCreate = () => {
+    if(inputComment.length > 0){
+      const params = {
+        workId: workId.id,
+        text: inputComment
+      }
+      createComment(params).then((res) => {
+        setComments(comments => [res.data.comment, ...comments])
+      })
+    }
+  }
+
+  const fetchMoreComments = async () => {
+    if(comments){
+      const params = {
+        number : 12,
+        start : comments[comments.length-1].id,
+        workId : workId.id,
+      }
+      const res = await getComments(params)
+      if(res.data.comments.length > 1){
+        setComments(comments => [...comments, ...res.data.comments])
+      }else if(res.data.comments.length == 1){
+        setComments(comments => [...comments, ...res.data.comments])
+        setHasMoreScroll(false)
+      }else{
+        setHasMoreScroll(false)
+      }
+    }
+  }
+
+  const loader = (
+    <div>
+      <h1>loading ...</h1>
+    </div>
+  );
+
   useEffect(() => {
     const max = [255, 255, 100]
     const min = [150, 150, 150]
@@ -166,6 +206,15 @@ export const Work = (callback: () => void) => {
           }
         })[0]
         setNowTheme(nowTheme)
+
+        const params = {
+          number : 20,
+          start : null,
+          workId : workId.id,
+        }
+        getComments(params).then((res) => {
+          setComments(res.data.comments)
+        })
       })
   }, [])
 
@@ -199,6 +248,31 @@ export const Work = (callback: () => void) => {
           </ReactionWrapper>
         </Grid>
         <Grid item xs={6}>
+          <ChatWrapper>
+            <ChatScrollagleDiv id="chatScroll">
+              <InfiniteScroll
+                dataLength={comments.length}
+                next={fetchMoreComments}
+                hasMore={hasMoreScroll} 
+                loader={loader}
+                scrollableTarget="chatScroll"
+                style={{maxWidth: "100%"}}
+              >
+                <div style={{width: "100%",maxWidth: "100%", wordBreak: "normal"}}>
+                  {comments.map(value => {
+                    return <div style={{width: "100%"}}>{value.text}</div>
+                  })}
+                </div>
+              </InfiniteScroll>
+            </ChatScrollagleDiv>
+            <ChatFormWrapper>
+              <ChatFormInput onChange={(e) => {
+                  setInputComment(e.target.value)
+              }} type="text" value={inputComment}>
+              </ChatFormInput>
+              <ChatFormBt onClick={() => handleCommentCreate()}>送信</ChatFormBt>
+            </ChatFormWrapper>
+          </ChatWrapper>
             <GroupAddWrapper>
               <GroupAddText id={workId.id} setParticipants={(number: number) => setNumberOfParticipants(number)}/>
             </GroupAddWrapper>
@@ -248,4 +322,65 @@ const GroupAddWrapper = styled.div`
   position: absolute;
   bottom: 16px;
   right: 16px;
+`
+
+const ChatWrapper = styled.div`
+  flex-direction: column;
+  display: flex;
+  flex-flow: column;
+  width: 80%;
+  height: 70vh;
+  margin-top: 54px;
+  padding-left: 54px;
+`
+
+const ChatScrollagleDiv = styled.div`
+  overflow: auto;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  ::-webkit-scrollbar {
+  width: 16px;
+  background-color: #f9f9f9;
+  }
+  ::-webkit-scrollbar-thumb {
+  border-radius: 10px;                      // スクロールバーの丸み
+  box-shadow: inset 0 0 10px 10px #909090;  // スクロールバーの色
+  border: solid 4px transparent;            // スクロールバーの左右の余白
+  }
+`
+
+const ChatFormWrapper = styled.div`
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  box-sizing: border-box;
+  display: flex;
+  justify-content:space-between;
+  flex-wrap: wrap;
+`
+
+const ChatFormInput = styled.input`
+  background: #d2ebf5;
+  border: none;
+  height: 2.0em;
+  width: 80%;
+  border-radius: 10px; 
+  :focus{
+    outline: 0;
+  }
+`
+
+const ChatFormBt = styled.button`
+  cursor: pointer;
+  border: none;
+  background: #87ceeb;
+  color: #fff;
+  outline : none;
+  height: 2.2em;
+  width: 15%;
+  border-radius: 10px; 
+  ::-webkit-input-placeholder {
+    color: #3879D9;
+  }
 `
