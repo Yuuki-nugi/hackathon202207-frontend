@@ -12,6 +12,7 @@ import Plus from './add_circle_FILL1_wght400_GRAD0_opsz48.png';
 import Good from './good.png';
 import Bad from './bad.png';
 import { GroupAddText } from "./GroupAddText";
+import moment from "moment";
 
 export const Work = (callback: () => void) => {
   const location = useLocation()
@@ -260,7 +261,10 @@ export const Work = (callback: () => void) => {
               >
                 <div style={{width: "100%",maxWidth: "100%", wordBreak: "normal"}}>
                   {comments.map(value => {
-                    return <div style={{width: "100%"}}>{value.text}</div>
+                    return <CommentWrapper>
+                        <a style={{fontSize: "60%"}}>{moment(value.createdAt).format('HH:mm')} </a> 
+                        <a>{value.text}</a> 
+                      </CommentWrapper>
                   })}
                 </div>
               </InfiniteScroll>
@@ -383,4 +387,9 @@ const ChatFormBt = styled.button`
   ::-webkit-input-placeholder {
     color: #3879D9;
   }
+`
+
+const CommentWrapper = styled.div`
+  border-bottom: 1px solid;
+  border-color: #e9e9e9;
 `
