@@ -3,6 +3,7 @@ import React, { Component, useState } from "react"
 import { useNavigate } from "react-router-dom";
 import { createWork, updateWork } from "../api/auth";
 import Edit from './edit_FILL1_wght400_GRAD0_opsz48.png';
+import styled from "@emotion/styled";
 
 interface Props {
     id: number;
@@ -24,7 +25,7 @@ export const HomeEditableText = (props: Props) => {
     }
 
     return (
-        <div>
+        <Wrapper>
             <form>
                 {editing ?
                     <div>
@@ -35,11 +36,18 @@ export const HomeEditableText = (props: Props) => {
                         <button onClick={() => handleSave()}>保存</button>
                     </div>:
                     <div>
-                        <span onClick={() => navigate("/work", { state: { id: props.id}})}>{input}</span>
+                        <span onClick={() => navigate("/work", { state: { id: props.id}})}>・{input}</span>
                         <img src={Edit} onClick={() => setEditing(true)}  height="12px" style={{marginLeft: "8px"}}/>
                     </div>
                 }
             </form>
-        </div>
+        </Wrapper>
     );
 }
+
+const Wrapper = styled.div`
+    background-color: skyblue;
+    border-radius: 8px;
+    width: 320px;
+    padding: 8px;
+`
