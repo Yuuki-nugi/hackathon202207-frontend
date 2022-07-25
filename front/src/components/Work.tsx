@@ -13,6 +13,7 @@ import Good from './good.png';
 import Bad from './bad.png';
 import { GroupAddText } from "./GroupAddText";
 import moment from "moment";
+import ActionCable from 'actioncable'
 
 export const Work = (callback: () => void) => {
   const location = useLocation()
@@ -31,8 +32,6 @@ export const Work = (callback: () => void) => {
   const [hasMoreScroll, setHasMoreScroll] = useState(true)
   const [inputComment, setInputComment] = useState("")
   const callbackRef = useRef<() => void>(callback);
-
-
 
   const changeNowTheme = (nowThemeId : number | null) => {
     if(themes){
@@ -142,9 +141,7 @@ export const Work = (callback: () => void) => {
         workId: workId.id,
         text: inputComment
       }
-      createComment(params).then((res) => {
-        setComments(comments => [res.data.comment, ...comments])
-      })
+      createComment(params)
     }
   }
 
@@ -187,6 +184,7 @@ export const Work = (callback: () => void) => {
   }, [sumFeeling, numberOfParticipants])
 
   useEffect(() => {
+
     getWork(workId.id)
       .then((res) => {
         const work = res.data.work
@@ -217,6 +215,25 @@ export const Work = (callback: () => void) => {
           setComments(res.data.comments)
         })
       })
+
+      var cable = ActionCable.createConsumer( "ws://localhost:3300/cable"); 
+
+      cable.subscriptions.create(
+        {
+          channel: "WorksChannel",
+          workId: workId.id
+        },
+        {
+          received: (data) => {
+            setComments(comments => [data.comments, ...comments])
+            console.log(data)
+          },
+          connected: () => console.log("connected"),
+          disconnected: () => console.log("disconnected")
+        }
+      );
+
+      return () => cable.disconnect()
   }, [])
 
   return (
