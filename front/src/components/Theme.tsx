@@ -20,7 +20,6 @@ interface Props {
   title: string;
   result: string | null;
   progress: boolean;
-  changeNowThemeId: (id: number | null) => void;
   deleteTheme: (id: number) => void;
 }
 
@@ -33,11 +32,7 @@ export const Theme = (props: Props) => {
   }
 
   const handleCreateProgress = () => {
-    createProgress(generateProgressParams(props.workId, props.progress ? null : props.id))
-      .then((res) => {
-        props.changeNowThemeId(res.data.progressingId)
-      })
-  }
+    createProgress(generateProgressParams(props.workId, props.progress ? null : props.id))}
 
   const height = props.progress ? "32px" : "24px"
   const width = props.progress ? "90%" : "70%"

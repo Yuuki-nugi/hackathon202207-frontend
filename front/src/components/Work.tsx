@@ -34,13 +34,16 @@ export const Work = (callback: () => void) => {
   const callbackRef = useRef<() => void>(callback);
 
   const changeNowTheme = (nowThemeId : number | null) => {
+    console.log(nowThemeId)
+    console.log(themes)
     if(themes){
       const nowTheme = themes.filter( function( value: any ){
+        console.log(value.id)
         if (value.id == nowThemeId) {
+          console.log('atta')
           return value
         }
       })[0]
-      console.log("chamge")
       setNowTheme(nowTheme)
     }
   }
@@ -128,7 +131,6 @@ export const Work = (callback: () => void) => {
         }
         updateFeeling(params).then((res) => {
           setFeeling(res.data.feeling)
-          setSumFeeling(res.data.sumFeeling)
         })
 
       }
@@ -184,6 +186,7 @@ export const Work = (callback: () => void) => {
   }, [sumFeeling, numberOfParticipants])
 
   useEffect(() => {
+    var cable = ActionCable.createConsumer( "ws://localhost:3300/cable"); 
 
     getWork(workId.id)
       .then((res) => {
@@ -214,24 +217,28 @@ export const Work = (callback: () => void) => {
         getComments(params).then((res) => {
           setComments(res.data.comments)
         })
-      })
 
-      var cable = ActionCable.createConsumer( "ws://localhost:3300/cable"); 
-
-      cable.subscriptions.create(
-        {
-          channel: "WorksChannel",
-          workId: workId.id
-        },
-        {
-          received: (data) => {
-            setComments(comments => [data.comments, ...comments])
-            console.log(data)
+        cable.subscriptions.create(
+          {
+            channel: "WorksChannel",
+            workId: workId.id
           },
-          connected: () => console.log("connected"),
-          disconnected: () => console.log("disconnected")
-        }
-      );
+          {
+            received: (data) => {
+              console.log(data)
+              if(data.comment != null){
+                setComments(comments => [data.comment, ...comments])
+              }else if(data.feeling != null){
+                setSumFeeling(data.feeling)
+              }else if(data.progress != null){
+                changeNowTheme(data.progress.theme_id)
+              }
+            },
+            connected: () => console.log("connected"),
+            disconnected: () => console.log("disconnected")
+          }
+        );
+      })
 
       return () => cable.disconnect()
   }, [])
@@ -244,7 +251,7 @@ export const Work = (callback: () => void) => {
             {nowTheme && themes &&
               themes.map(value => {
                 if (value.id == nowTheme.id) {
-                  return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={true} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+                  return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={true} deleteTheme={(id: number) => handleDeleteTheme(id)} />
                 }
               })
             }
@@ -253,7 +260,7 @@ export const Work = (callback: () => void) => {
               {themes &&
                 themes.map(value => {
                   if (value.id != nowTheme?.id) {
-                    return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={false} changeNowThemeId={(id: number | null) => changeNowTheme(id)} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+                    return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={false} deleteTheme={(id: number) => handleDeleteTheme(id)} />
                   }
                 })
               }
