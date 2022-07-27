@@ -5,7 +5,7 @@ import { Grid, ListItem } from "@mui/material";
 import List from '@mui/material/List';
 import { getWorks } from "../api/auth";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { getWork, createProgress } from "../api/auth";
+import { getWork, createProgress, deleteTheme, updateTheme } from "../api/auth";
 import styled from "@emotion/styled";
 import Close from './close_FILL1_wght500_GRAD0_opsz48.png';
 import Play from './play_circle_FILL1_wght500_GRAD0_opsz48.png';
@@ -18,14 +18,12 @@ interface Props {
   workId: number;
   id: number;
   title: string;
-  result: string | null;
+  result: string | '';
   progress: boolean;
-  deleteTheme: (id: number) => void;
 }
 
 export const Theme = (props: Props) => {
-  const [title, setTitle] = useState(props.title)
-  const [result, setResult] = useState(props.result)
+  console.log(props.title)
   const generateProgressParams = (workId: number, themeId: number | null) => {
     const params = {workId: workId, themeId: themeId}
     return params
@@ -43,13 +41,13 @@ export const Theme = (props: Props) => {
   return (
     <div style={{marginBottom: "8px"}}>
       <ThemeWrapper style={{width: width, fontSize: height}}>
-        <img src={Close} onClick={() => props.deleteTheme(props.id)} height="16px" style={{ marginRight: "16px"}}/>
-        <ThemeEditableText id={props.id} text={title} type="title"/>
+        <img src={Close} onClick={() => deleteTheme(props.id)} height="16px" style={{ marginRight: "16px"}}/>
+        <ThemeEditableText id={props.id} text={props.title} type="title"/>
         <img src={playOrPause} onClick={() => handleCreateProgress()} height="24px" style={{marginLeft: "auto", marginRight: "8px"}}/>
       </ThemeWrapper>
       {props.result != null &&
         <ResultWrapper style={{width: resultWidth, fontSize: resultFont}}>
-            <ThemeEditableText id={props.id} text={result} type="result"/>
+            <ThemeEditableText id={props.id} text={props.result} type="result"/>
         </ResultWrapper>
       }
     </div>

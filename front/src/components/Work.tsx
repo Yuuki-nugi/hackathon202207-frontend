@@ -19,7 +19,7 @@ export const Work = (callback: () => void) => {
   const location = useLocation()
   const [workId, setWorkId] = useState<{ id: number}>(location.state as { id: number })
   const [work, setWork] = useState()
-  const [themes, setThemes] = useState<Array<{id: number, title: string, result: string | null, }>>()
+  const [themes, setThemes] = useState<Array<{id: number, title: string, result: string | null, }>>([])
   const [nowThemeId, setNowThemeId] = useState()
   const [nowTheme, setNowTheme] = useState<{id: number, title: string, result: string | null, }>()
   const [feeling, setFeeling] = useState(0)
@@ -31,6 +31,7 @@ export const Work = (callback: () => void) => {
   const [comments, setComments] = useState<Array<any>>([<a>コメントはありません</a>])
   const [hasMoreScroll, setHasMoreScroll] = useState(true)
   const [inputComment, setInputComment] = useState("")
+  const [cableData, setCableData] = useState<any>()
   const callbackRef = useRef<() => void>(callback);
 
   const changeNowTheme = (nowThemeId : number | null) => {
@@ -48,28 +49,44 @@ export const Work = (callback: () => void) => {
     }
   }
 
-  const addTheme = () => {
-    createTheme(workId.id).then((res) => {
-      const theme = res.data.theme
-      if(themes){
-        setThemes([...themes, theme])
-      }
-    })
-  }
-
-  const handleDeleteTheme = (id: number) => {
-    deleteTheme(id).then((res) => {
-      if(themes){
-        const new_themes: Array<{id: number, title: string, result: string | null, }> = themes.map((value) => {
-          if(value.id != id){
-            return value
+  const changeThemeData = (theme: any, method: string) => {
+    if(themes){
+      switch(method) {
+        case 'create':
+          console.log('create')
+          setThemes([theme, ...themes])
+          break;
+        case 'update':
+          var themeIndex = null
+          const changed_theme = themes.filter( function( value: any, index: number ){
+            console.log(value.id)
+            if (value.id == theme.id) {
+              themeIndex = index
+              return value
+            }
+          })[0]
+          changed_theme.result = theme.result
+          changed_theme.title = theme.title
+          if(themeIndex != null){
+            const themes_copy = themes
+            themes_copy[themeIndex] = changed_theme
+            console.log(themes_copy)
+            setThemes(themes_copy)
           }
-        }).filter((value): value is {id: number, title: string, result: string | null, } => value !== undefined)
-        if(new_themes){
-          setThemes(new_themes)
-        }
+          break;
+        case 'destroy':
+          const new_themes: Array<{id: number, title: string, result: string | null, }> = themes.map((value) => {
+            if(value.id != theme.id){
+              return value
+            }
+          }).filter((value): value is {id: number, title: string, result: string | null, } => value !== undefined)
+          if(new_themes){
+            setThemes(new_themes)
+          }
+          break;
       }
-    })
+      
+    }
   }
 
   const handleGood = () => {
@@ -81,7 +98,6 @@ export const Work = (callback: () => void) => {
       }
       updateFeeling(params).then((res) => {
         setFeeling(res.data.feeling)
-        setSumFeeling(res.data.sumFeeling)
       })
     }
   }
@@ -95,7 +111,6 @@ export const Work = (callback: () => void) => {
       }
       updateFeeling(params).then((res) => {
         setFeeling(res.data.feeling)
-        setSumFeeling(res.data.sumFeeling)
       })
     }
   }
@@ -171,6 +186,22 @@ export const Work = (callback: () => void) => {
       <h1>loading ...</h1>
     </div>
   );
+  
+  useEffect(() => {
+    if(cableData) {
+      if(cableData.comment != null){
+        setComments(comments => [cableData.comment, ...comments])
+      }else if(cableData.feeling != null){
+        setSumFeeling(cableData.feeling)
+      }else if(cableData.progress != null){
+        changeNowTheme(cableData.progress.theme_id)
+      }else if(cableData.theme != null){
+        if(cableData.method != null){
+          changeThemeData(cableData.theme, cableData.method)
+        }
+      }
+    }
+  }, [cableData])
 
   useEffect(() => {
     const max = [255, 255, 100]
@@ -226,13 +257,7 @@ export const Work = (callback: () => void) => {
           {
             received: (data) => {
               console.log(data)
-              if(data.comment != null){
-                setComments(comments => [data.comment, ...comments])
-              }else if(data.feeling != null){
-                setSumFeeling(data.feeling)
-              }else if(data.progress != null){
-                changeNowTheme(data.progress.theme_id)
-              }
+              setCableData(data)
             },
             connected: () => console.log("connected"),
             disconnected: () => console.log("disconnected")
@@ -248,10 +273,10 @@ export const Work = (callback: () => void) => {
       <Grid container minHeight="100vh">
         <Grid item xs={6}>
           <ThemeWrapper>
-            {nowTheme && themes &&
+          {nowTheme && themes &&
               themes.map(value => {
                 if (value.id == nowTheme.id) {
-                  return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={true} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+                  return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={true} />
                 }
               })
             }
@@ -260,11 +285,11 @@ export const Work = (callback: () => void) => {
               {themes &&
                 themes.map(value => {
                   if (value.id != nowTheme?.id) {
-                    return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={false} deleteTheme={(id: number) => handleDeleteTheme(id)} />
+                    return <Theme workId={workId.id} id={value.id} title={value.title} result={value.result || ""} progress={false} />
                   }
                 })
               }
-              <img src={Plus} onClick={() => addTheme()} height="32px" style={{bottom: 10, position: "sticky", marginLeft: "auto", marginRight: "8px"}}/>
+              <img src={Plus} onClick={() => createTheme(workId.id)} height="32px" style={{bottom: 10, position: "sticky", marginLeft: "auto", marginRight: "8px"}}/>
             </ScrollableDiv>
           </ThemeWrapper>
           <ReactionWrapper>

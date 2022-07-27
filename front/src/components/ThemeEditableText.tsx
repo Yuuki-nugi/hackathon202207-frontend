@@ -5,13 +5,14 @@ import Edit from './edit_FILL1_wght400_GRAD0_opsz48.png';
 
 interface Props {
     id: number;
-    text: string | null;
+    text: string;
     type: string;
   }
 
 export const ThemeEditableText = (props: Props) => {
     const [editing, setEditing] = useState(false)
-    const [input, setInput] = useState(props.text || "")
+    const [input, setInput] = useState('')
+    console.log(props.text)
 
     const handleSave = () => {
         const params = {
@@ -22,6 +23,11 @@ export const ThemeEditableText = (props: Props) => {
         }
         updateTheme(props.id, params)
         setEditing(false)
+    }
+
+    const handleEdit = () => {
+        setEditing(true)
+        setInput(props.text)
     }
 
     return (
@@ -36,8 +42,8 @@ export const ThemeEditableText = (props: Props) => {
                         <button onClick={() => handleSave()}>保存</button>
                     </div>:
                     <div>
-                        <span>{input}</span>
-                        <img src={Edit} onClick={() => setEditing(true)}  height="12px" style={{marginLeft: "8px"}}/>
+                        <span>{props.text}</span>
+                        <img src={Edit} onClick={() => handleEdit()}  height="12px" style={{marginLeft: "8px"}}/>
                     </div>
                 }
             </form>
